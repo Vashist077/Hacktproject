@@ -1,299 +1,70 @@
-# SubGuard - Subscription Monitoring & Fraud Detection System
+# Getting Started with Create React App
 
-SubGuard is a comprehensive web application that helps users monitor their subscriptions, detect fraudulent transactions, and optimize their spending through AI-powered analysis.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## 🚀 Features
+## Available Scripts
 
-### Core Functionality
-- **User Authentication**: Secure signup/login with JWT tokens
-- **Subscription Management**: Track and manage all your subscriptions
-- **Fraud Detection**: AI-powered detection of suspicious transactions
-- **Gmail Integration**: Automatic transaction monitoring via Gmail API
-- **CSV Upload**: Manual import of bank/UPI transaction data
-- **Real-time Notifications**: Email, SMS, and push notifications
-- **Analytics Dashboard**: Comprehensive spending insights and forecasts
+In the project directory, you can run:
 
-### AI/NLP Capabilities
-- **Transaction Parsing**: Extract structured data from transaction emails
-- **Subscription Detection**: Identify recurring charges and subscriptions
-- **Fraud Analysis**: Detect suspicious patterns and unauthorized transactions
-- **Smart Categorization**: Automatically categorize transactions by type
+### `npm start`
 
-## 🏗️ Architecture
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-```
-SubGuard/
-├── frontend/          # React.js application
-├── backend/           # Node.js + Express API
-├── nlp_service/       # Python Flask AI service
-└── docs/             # Documentation
-```
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-### Technology Stack
+### `npm test`
 
-**Frontend:**
-- React 19.1.1
-- React Router 7.8.2
-- Chart.js 4.5.0
-- TailwindCSS (via inline styles)
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-**Backend:**
-- Node.js + Express
-- MongoDB with Mongoose
-- JWT Authentication
-- Gmail API Integration
-- Twilio SMS Integration
+### `npm run build`
 
-**AI/NLP Service:**
-- Python Flask
-- NLTK + spaCy
-- scikit-learn
-- Custom fraud detection algorithms
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-## 🚀 Quick Start
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-### Prerequisites
-- Node.js 16+
-- Python 3.8+
-- MongoDB
-- Gmail API credentials
-- Twilio account (for SMS)
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### Installation
+### `npm run eject`
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd subguard
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-2. **Setup Backend**
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with your configuration
-npm run dev
-```
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-3. **Setup Frontend**
-```bash
-cd Hacktproject
-npm install
-npm start
-```
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-4. **Setup NLP Service**
-```bash
-cd nlp_service
-pip install -r requirements.txt
-python app.py
-```
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-### Environment Configuration
+## Learn More
 
-Create `.env` files in both `backend/` and `nlp_service/` directories:
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-**Backend (.env):**
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/subguard
-JWT_SECRET=your-super-secret-jwt-key
-GMAIL_CLIENT_ID=your-gmail-client-id
-GMAIL_CLIENT_SECRET=your-gmail-client-secret
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-NLP_SERVICE_URL=http://localhost:5001
-FRONTEND_URL=http://localhost:3000
-```
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-## 📱 Usage
+### Code Splitting
 
-### 1. User Registration & Login
-- Sign up with email and password
-- Verify email (optional)
-- Login to access dashboard
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-### 2. Subscription Management
-- **Manual Entry**: Add subscriptions manually
-- **CSV Upload**: Import bank statements
-- **Gmail Integration**: Connect Gmail for automatic monitoring
+### Analyzing the Bundle Size
 
-### 3. Transaction Monitoring
-- **Gmail Watch**: Monitor emails for transaction notifications
-- **AI Processing**: Automatic parsing and classification
-- **Fraud Detection**: Real-time fraud analysis
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### 4. Alerts & Notifications
-- **Fraud Alerts**: Immediate notification of suspicious transactions
-- **Renewal Reminders**: Upcoming subscription renewals
-- **Spending Alerts**: Budget threshold notifications
+### Making a Progressive Web App
 
-### 5. Analytics & Insights
-- **Spending Trends**: Monthly/yearly spending analysis
-- **Category Breakdown**: Spending by subscription type
-- **Forecasting**: Predictive spending analysis
-- **Recommendations**: AI-powered optimization suggestions
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-## 🔧 API Endpoints
+### Advanced Configuration
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Subscriptions
-- `GET /api/subscriptions` - Get all subscriptions
-- `POST /api/subscriptions` - Create subscription
-- `PUT /api/subscriptions/:id` - Update subscription
-- `DELETE /api/subscriptions/:id` - Delete subscription
-- `POST /api/subscriptions/upload-csv` - Upload CSV file
+### Deployment
 
-### Alerts
-- `GET /api/alerts` - Get all alerts
-- `POST /api/alerts/:id/resolve` - Resolve alert
-- `POST /api/alerts/:id/ignore` - Ignore alert
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### Analytics
-- `GET /api/analytics/spending` - Spending over time
-- `GET /api/analytics/categories` - Category breakdown
-- `GET /api/analytics/fraud-detection` - Fraud statistics
-- `GET /api/analytics/recommendations` - AI recommendations
+### `npm run build` fails to minify
 
-### Gmail Integration
-- `GET /api/gmail/connect` - Get OAuth URL
-- `POST /api/gmail/sync` - Sync transactions
-- `POST /api/gmail/disconnect` - Disconnect Gmail
-
-## 🤖 AI/NLP Service
-
-The Python Flask service provides:
-
-### Endpoints
-- `POST /analyze` - Analyze multiple transactions
-- `POST /extract` - Extract data from single transaction
-- `POST /detect-fraud` - Detect fraud in transaction
-- `POST /classify-subscription` - Classify subscription type
-
-### Features
-- **Text Processing**: NLTK + spaCy for advanced NLP
-- **Pattern Recognition**: Regex patterns for transaction data
-- **Machine Learning**: scikit-learn for classification
-- **Fraud Detection**: Custom algorithms for suspicious activity
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based auth
-- **Password Hashing**: bcrypt for password security
-- **Rate Limiting**: API rate limiting protection
-- **CORS Configuration**: Cross-origin request security
-- **Input Validation**: Comprehensive data validation
-- **Helmet.js**: Security headers protection
-
-## 📊 Data Models
-
-### User
-```javascript
-{
-  firstName: String,
-  lastName: String,
-  email: String (unique),
-  phone: String,
-  password: String (hashed),
-  gmailConnected: Boolean,
-  notificationSettings: Object,
-  preferences: Object
-}
-```
-
-### Subscription
-```javascript
-{
-  user: ObjectId,
-  name: String,
-  merchant: String,
-  amount: Number,
-  billingCycle: String,
-  nextBilling: Date,
-  status: String,
-  category: String,
-  usage: Object
-}
-```
-
-### Alert
-```javascript
-{
-  user: ObjectId,
-  type: String,
-  title: String,
-  description: String,
-  merchant: String,
-  amount: Number,
-  status: String,
-  severity: String,
-  metadata: Object
-}
-```
-
-## 🚀 Deployment
-
-### Production Setup
-
-1. **Environment Variables**
-   - Set production MongoDB URI
-   - Configure Gmail API credentials
-   - Set up Twilio for SMS
-   - Configure email SMTP settings
-
-2. **Database Setup**
-   - Create MongoDB production database
-   - Set up indexes for performance
-   - Configure backup strategy
-
-3. **Server Configuration**
-   - Use PM2 for process management
-   - Configure Nginx reverse proxy
-   - Set up SSL certificates
-   - Configure firewall rules
-
-4. **Monitoring**
-   - Set up application monitoring
-   - Configure error tracking
-   - Set up performance monitoring
-   - Configure log aggregation
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Contact the development team
-
-## 🔮 Future Enhancements
-
-- **Mobile App**: React Native mobile application
-- **Advanced AI**: Machine learning model improvements
-- **Bank Integration**: Direct bank API integration
-- **Multi-currency**: Support for multiple currencies
-- **Team Features**: Family/team subscription sharing
-- **API Marketplace**: Third-party integrations
-
----
-
-**SubGuard** - Protecting your finances, one subscription at a time! 🛡️
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
