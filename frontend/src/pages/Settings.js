@@ -1,48 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import { userAPI, notificationsAPI } from '../api';
 
 const Settings = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [settings, setSettings] = useState({
-    profile: {
-      firstName: user?.firstName || 'John',
-      lastName: user?.lastName || 'Doe',
-      email: user?.email || 'john@example.com',
-      phone: user?.phone || '+1234567890'
-    },
+    profile: { firstName: '', lastName: '', email: '', phone: '' },
     notifications: {
-      email: {
-        enabled: true,
-        fraudAlerts: true,
-        renewalReminders: true,
-        spendingAlerts: true
-      },
-      sms: {
-        enabled: false,
-        fraudAlerts: true,
-        renewalReminders: false
-      },
-      push: {
-        enabled: true,
-        fraudAlerts: true,
-        renewalReminders: true
-      }
+      email: { enabled: true, fraudAlerts: true, renewalReminders: true, spendingAlerts: true },
+      sms: { enabled: false, fraudAlerts: true, renewalReminders: false },
+      push: { enabled: true, fraudAlerts: true, renewalReminders: true }
     },
-    preferences: {
-      currency: 'INR',
-      timezone: 'Asia/Kolkata',
-      language: 'en'
-    },
-    security: {
-      twoFactorAuth: false,
-      loginNotifications: true,
-      sessionTimeout: 30
-    }
+    preferences: { currency: 'INR', timezone: 'Asia/Kolkata', language: 'en' },
+    security: { twoFactorAuth: false, loginNotifications: true, sessionTimeout: 30 }
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const profile = await userAPI.getProfile();
+        const notif = await notificationsAPI.getSettings();
+        setSettings(prev => ({
+          ...prev,
+          profile: {
+            firstName: profile?.firstName || '',
+            lastName: profile?.lastName || '',
+            email: profile?.email || '',
+            phone: profile?.phone || ''
+          },
+          notifications: notif || prev.notifications
+        }));
+      } catch (_) {
+        setError('Failed to load profile');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleInputChange = (section, field, value) => {
     setSettings(prev => ({
@@ -70,15 +72,19 @@ const Settings = ({ user, onLogout }) => {
   const handleSave = async (section) => {
     setIsLoading(true);
     setMessage('');
+    setError('');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (section === 'Profile') {
+        await userAPI.updateProfile(settings.profile);
+      } else if (section === 'Notification') {
+        await notificationsAPI.updateSettings(settings.notifications);
+      }
       
       setMessage(`${section} settings saved successfully!`);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`Error saving ${section} settings`);
+      setError(`Error saving ${section} settings`);
     } finally {
       setIsLoading(false);
     }
@@ -87,12 +93,11 @@ const Settings = ({ user, onLogout }) => {
   const handleTestNotification = async (type) => {
     setIsLoading(true);
     try {
-      // Simulate sending test notification
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await notificationsAPI.testNotification(type);
       setMessage(`Test ${type} notification sent!`);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`Error sending test ${type} notification`);
+      setError(`Error sending test ${type} notification`);
     } finally {
       setIsLoading(false);
     }

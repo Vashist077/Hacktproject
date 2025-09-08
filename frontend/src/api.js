@@ -37,6 +37,30 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 };
 
+// Generic HTTP helpers
+const buildQueryString = (params = {}) => {
+  const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '');
+  if (entries.length === 0) return '';
+  const qs = new URLSearchParams(entries).toString();
+  return `?${qs}`;
+};
+
+export const http = {
+  get: async (endpoint, query) => {
+    const qs = buildQueryString(query);
+    return apiRequest(`${endpoint}${qs}`, { method: 'GET' });
+  },
+  post: async (endpoint, body, options = {}) => {
+    return apiRequest(endpoint, { method: 'POST', body: JSON.stringify(body || {}), ...options });
+  },
+  put: async (endpoint, body, options = {}) => {
+    return apiRequest(endpoint, { method: 'PUT', body: JSON.stringify(body || {}), ...options });
+  },
+  delete: async (endpoint, options = {}) => {
+    return apiRequest(endpoint, { method: 'DELETE', ...options });
+  },
+};
+
 // Authentication API
 export const authAPI = {
   login: (email, password) => 
@@ -218,4 +242,5 @@ export default {
   analytics: analyticsAPI,
   gmail: gmailAPI,
   notifications: notificationsAPI,
+  http,
 };

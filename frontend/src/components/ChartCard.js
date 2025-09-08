@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ChartCard = ({ title, children, style = {} }) => {
+const ChartCard = ({ title, children, style = {}, height = 300 }) => {
   return (
     <div style={{
       background: '#fff',
@@ -19,7 +19,9 @@ const ChartCard = ({ title, children, style = {} }) => {
       }}>
         {title}
       </h3>
-      {children}
+      <div style={{ position: 'relative', width: '100%', height }}>
+        {children}
+      </div>
     </div>
   );
 };

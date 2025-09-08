@@ -15,6 +15,7 @@ import {
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import ChartCard from '../components/ChartCard';
+import { analyticsAPI, alertsAPI, subscriptionsAPI } from '../api';
 import AlertCard from '../components/AlertCard';
 
 ChartJS.register(
@@ -31,41 +32,54 @@ ChartJS.register(
 
 const Dashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState({
-    activeSubscriptions: 14,
-    monthlySpending: 4200,
-    fraudAlerts: 3,
-    totalSavings: 1200
+    activeSubscriptions: 0,
+    monthlySpending: 0,
+    fraudAlerts: 0,
+    totalSavings: 0
   });
 
-  const [recentAlerts, setRecentAlerts] = useState([
-    {
-      id: 1,
-      type: 'fraud',
-      title: 'Unknown Recurring Debit',
-      merchant: 'XYZ Corp',
-      amount: 999,
-      date: '2024-01-15',
-      description: 'Unrecognized recurring charge detected'
-    },
-    {
-      id: 2,
-      type: 'renewal',
-      title: 'Netflix Renewal Due',
-      merchant: 'Netflix',
-      amount: 499,
-      date: '2024-01-20',
-      description: 'Your Netflix subscription will renew in 3 days'
-    },
-    {
-      id: 3,
-      type: 'unused',
-      title: 'Unused Subscription',
-      merchant: 'Adobe Creative Cloud',
-      amount: 2299,
-      date: '2024-01-10',
-      description: 'No usage detected in the last 30 days'
-    }
-  ]);
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const [subsRes, alertsRes, spendRes] = await Promise.all([
+          subscriptionsAPI.getAll(),
+          alertsAPI.getAll(),
+          analyticsAPI.getSpendingOverTime('1month')
+        ]);
+
+        const subs = Array.isArray(subsRes) ? subsRes : (subsRes?.data || subsRes?.subscriptions || []);
+        const alerts = alertsRes?.data?.alerts || [];
+        const monthlySpending = Array.isArray(spendRes?.data) ? spendRes.data.reduce((a, b) => a + (b.amount || 0), 0) : 0;
+
+        setStats({
+          activeSubscriptions: subs.filter(s => (s.status || 'active') === 'active').length,
+          monthlySpending,
+          fraudAlerts: alerts.filter(a => a.type === 'fraud' && (a.status || 'active') === 'active').length,
+          totalSavings: 0
+        });
+        setRecentAlerts(alerts.slice(0, 5).map(a => ({
+          id: a._id || a.id,
+          type: a.type,
+          title: a.title,
+          merchant: a.merchant || a.subscription?.merchant || '',
+          amount: a.amount || a.subscription?.amount || 0,
+          date: a.date || a.createdAt,
+          description: a.description
+        })));
+      } catch (e) {
+        setError('Failed to load dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
   // Chart data
   const spendingData = {
@@ -141,18 +155,18 @@ const Dashboard = ({ user, onLogout }) => {
 
           {/* Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-            <ChartCard title="Spending Over Time">
+            <ChartCard title="Spending Over Time" height={300}>
               <Line data={spendingData} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
             
-            <ChartCard title="Spending by Category">
+            <ChartCard title="Spending by Category" height={300}>
               <Doughnut data={categoryData} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
           </div>
 
           {/* Bottom Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <ChartCard title="Fraud Detection Pattern">
+            <ChartCard title="Fraud Detection Pattern" height={300}>
               <Bar data={fraudData} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
             
@@ -161,6 +175,12 @@ const Dashboard = ({ user, onLogout }) => {
                 Recent Alerts
               </h3>
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {loading && (
+                  <div style={{ textAlign: 'center', padding: '1rem', color: '#6c757d' }}>Loading...</div>
+                )}
+                {error && (
+                  <div style={{ textAlign: 'center', padding: '1rem', color: '#dc3545' }}>{error}</div>
+                )}
                 {recentAlerts.map(alert => (
                   <AlertCard key={alert.id} alert={alert} onAction={handleAlertAction} />
                 ))}

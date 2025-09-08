@@ -7,13 +7,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
-const subscriptionRoutes = require('./routes/subscriptions');
-const alertRoutes = require('./routes/alerts');
-const analyticsRoutes = require('./routes/analytics');
-const gmailRoutes = require('./routes/gmail');
-const notificationRoutes = require('./routes/notifications');
+const apiRouter = require('./routes');
 
 const app = express();
 
@@ -64,13 +58,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/gmail', gmailRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api', apiRouter);
 
 // 404 handler
 app.use('*', (req, res) => {
