@@ -78,10 +78,16 @@ const Subscriptions = ({ user, onLogout }) => {
     setUploadMessage('');
 
     try {
+      console.log('Starting CSV upload...');
       const result = await subscriptionsAPI.uploadCSV(file);
+      console.log('Upload result:', result);
       
       if (result.success) {
         setUploadMessage(`Successfully imported ${result.data.imported} subscriptions`);
+        if (result.data.errors > 0) {
+          setUploadMessage(prev => prev + ` (${result.data.errors} errors)`);
+        }
+        
         // Refresh the subscriptions list
         const updatedResult = await subscriptionsAPI.getAll();
         const items = Array.isArray(updatedResult) ? updatedResult : (updatedResult?.data || updatedResult?.subscriptions || []);
@@ -97,9 +103,10 @@ const Subscriptions = ({ user, onLogout }) => {
         })));
       } else {
         setError(result.message || 'Upload failed');
+        console.error('Upload failed:', result);
       }
     } catch (err) {
-      setError('Failed to upload CSV file');
+      setError('Failed to upload CSV file: ' + (err.message || 'Unknown error'));
       console.error('Upload error:', err);
     } finally {
       setUploading(false);

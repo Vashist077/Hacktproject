@@ -1,9 +1,9 @@
 name,merchant,amount,currency,billing_cycle,category,next_billing,description
-Netflix,Netflix,299,INR,monthly,Streaming,2024-02-15,Video streaming service
-Spotify,Spotify,119,INR,monthly,Music,2024-02-10,Music streaming service
-Adobe Creative Cloud,Adobe,1999,INR,monthly,Software,2024-02-20,Creative software suite
-Amazon Prime,Amazon,999,INR,yearly,Streaming,2025-01-15,Prime video and delivery
-Microsoft 365,Microsoft,699,INR,monthly,Software,2024-02-12,Office productivity suite
-Google One,Google,199,INR,monthly,Cloud Storage,2024-02-08,Cloud storage service
-Zoom Pro,Zoom,1499,INR,monthly,Software,2024-02-18,Video conferencing tool
-Dropbox Plus,Dropbox,999,INR,monthly,Cloud Storage,2024-02-14,File storage service
+Netflix,Netflix,299,INR,monthly,Streaming,15-02-2024,Video streaming service
+Spotify,Spotify,119,INR,monthly,Music,10-02-2024,Music streaming service
+Adobe Creative Cloud,Adobe,1999,INR,monthly,Software,20-02-2024,Creative software suite
+Amazon Prime,Amazon,999,INR,yearly,Streaming,15-01-2025,Prime video and delivery
+Microsoft 365,Microsoft,699,INR,monthly,Software,12-02-2024,Office productivity suite
+Google One,Google,199,INR,monthly,Cloud Storage,08-02-2024,Cloud storage service
+Zoom Pro,Zoom,1499,INR,monthly,Software,18-02-2024,Video conferencing tool
+Dropbox Plus,Dropbox,999,INR,monthly,Cloud Storage,14-02-2024,File storage service

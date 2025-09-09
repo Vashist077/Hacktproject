@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Upload Debug</title>
+</head>
+<body>
+    <h1>CSV Upload Debug Tool</h1>
+    
+    <div>
+        <h2>Step 1: Test Authentication</h2>
+        <button onclick="testAuth()">Test Auth</button>
+        <div id="authResult"></div>
+    </div>
+    
+    <div>
+        <h2>Step 2: Test File Upload</h2>
+        <input type="file" id="fileInput" accept=".csv">
+        <button onclick="testUpload()">Test Upload</button>
+        <div id="uploadResult"></div>
+    </div>
+    
+    <div>
+        <h2>Step 3: Test CSV Upload</h2>
+        <input type="file" id="csvInput" accept=".csv">
+        <button onclick="testCSVUpload()">Test CSV Upload</button>
+        <div id="csvResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            document.body.innerHTML = '<h1>Please login first and then open this debug page</h1>';
+        }
+        
+        async function testAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/subscriptions/test`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const result = await response.json();
+                document.getElementById('authResult').innerHTML = 
+                    `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('authResult').innerHTML = 
+                    `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_BASE}/subscriptions/test-upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('uploadResult').innerHTML = 
+                    `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('uploadResult').innerHTML = 
+                    `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testCSVUpload() {
+            const fileInput = document.getElementById('csvInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a CSV file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_BASE}/subscriptions/upload-csv`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('csvResult').innerHTML = 
+                    `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('csvResult').innerHTML = 
+                    `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

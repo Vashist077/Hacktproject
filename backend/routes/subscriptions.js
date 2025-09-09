@@ -10,6 +10,15 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Test endpoint to verify the route is working
+router.get('/test', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Subscriptions route is working',
+    user: req.user ? req.user.id : 'No user'
+  });
+});
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,7 +30,8 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `subscriptions-${req.user._id || req.user.id}-${uniqueSuffix}.csv`);
+    const userId = req.user ? (req.user._id || req.user.id) : 'anonymous';
+    cb(null, `subscriptions-${userId}-${uniqueSuffix}.csv`);
   }
 });
 
@@ -36,6 +46,41 @@ const upload = multer({
     } else {
       cb(new Error('Only CSV files are allowed'), false);
     }
+  }
+});
+
+// Test file upload endpoint (without CSV processing)
+router.post('/test-upload', authenticateToken, upload.single('file'), (req, res) => {
+  try {
+    console.log('Test upload - User:', req.user);
+    console.log('Test upload - File:', req.file);
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+    
+    // Clean up the test file
+    fs.unlinkSync(req.file.path);
+    
+    res.json({
+      success: true,
+      message: 'File upload test successful',
+      file: {
+        originalname: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('Test upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Test upload failed',
+      error: error.message
+    });
   }
 });
 
@@ -291,7 +336,12 @@ router.post('/:id/reactivate', authenticateToken, async (req, res) => {
 // @access  Private
 router.post('/upload-csv', authenticateToken, upload.single('file'), async (req, res) => {
   try {
+    console.log('CSV upload request received');
+    console.log('User:', req.user);
+    console.log('File:', req.file);
+    
     if (!req.file) {
+      console.log('No file uploaded');
       return res.status(400).json({
         success: false,
         message: 'No file uploaded'
@@ -301,21 +351,28 @@ router.post('/upload-csv', authenticateToken, upload.single('file'), async (req,
     const results = [];
     const errors = [];
 
+    console.log('Starting CSV parsing for file:', req.file.path);
+    
     // Parse CSV file
     fs.createReadStream(req.file.path)
       .pipe(csv())
-      .on('data', (data) => results.push(data))
+      .on('data', (data) => {
+        console.log('CSV row data:', data);
+        results.push(data);
+      })
       .on('end', async () => {
         try {
+          console.log(`CSV parsing completed. Found ${results.length} rows`);
           const subscriptions = [];
           
           for (let i = 0; i < results.length; i++) {
             const row = results[i];
+            console.log(`Processing row ${i + 1}:`, row);
             
             try {
               // Map CSV columns to subscription fields
               const subscriptionData = {
-                userId: req.user._id || req.user._id || req.user.id,
+                userId: req.user._id || req.user.id,
                 name: row.name || row.subscription_name || row.service,
                 merchant: row.merchant || row.company || row.name,
                 amount: parseFloat(row.amount || row.price || row.cost),
@@ -328,21 +385,35 @@ router.post('/upload-csv', authenticateToken, upload.single('file'), async (req,
                 confidence: 0.8
               };
 
+              console.log('Mapped subscription data:', subscriptionData);
+
               // Validate required fields
               if (!subscriptionData.name || !subscriptionData.merchant || !subscriptionData.amount) {
-                errors.push(`Row ${i + 1}: Missing required fields (name, merchant, amount)`);
+                const errorMsg = `Row ${i + 1}: Missing required fields (name: ${subscriptionData.name}, merchant: ${subscriptionData.merchant}, amount: ${subscriptionData.amount})`;
+                console.log(errorMsg);
+                errors.push(errorMsg);
                 continue;
               }
 
               const subscription = await Subscription.create(subscriptionData);
+              console.log('Created subscription:', subscription.id);
               subscriptions.push(subscription);
             } catch (error) {
-              errors.push(`Row ${i + 1}: ${error.message}`);
+              const errorMsg = `Row ${i + 1}: ${error.message}`;
+              console.error(errorMsg, error);
+              errors.push(errorMsg);
             }
           }
 
           // Clean up uploaded file
-          fs.unlinkSync(req.file.path);
+          try {
+            fs.unlinkSync(req.file.path);
+            console.log('Uploaded file cleaned up');
+          } catch (cleanupError) {
+            console.error('Error cleaning up file:', cleanupError);
+          }
+
+          console.log(`CSV processing completed. Imported: ${subscriptions.length}, Errors: ${errors.length}`);
 
           res.json({
             success: true,

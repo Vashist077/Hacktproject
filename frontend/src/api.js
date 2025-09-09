@@ -27,7 +27,16 @@ const apiRequest = async (endpoint, options = {}) => {
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to get the error message from the response
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If we can't parse the error response, use the status
+        errorMessage = `HTTP error! status: ${response.status}`;
+      }
+      throw new Error(errorMessage);
     }
     
     return await response.json();
@@ -145,6 +154,8 @@ export const subscriptionsAPI = {
   uploadCSV: (file) => {
     const formData = new FormData();
     formData.append('file', file);
+    
+    console.log('Uploading CSV file:', file.name, file.size, 'bytes');
     
     return apiRequest('/subscriptions/upload-csv', {
       method: 'POST',
