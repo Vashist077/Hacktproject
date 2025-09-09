@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `subscriptions-${req.user.id}-${uniqueSuffix}.csv`);
+    cb(null, `subscriptions-${req.user._id || req.user.id}-${uniqueSuffix}.csv`);
   }
 });
 
@@ -45,7 +45,7 @@ const upload = multer({
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { status, category, sortBy = 'name', sortOrder = 'asc' } = req.query;
-    const where = { userId: req.user.id };
+    const where = { userId: req.user._id || req.user.id };
     if (status) where.status = status;
     if (category) where.category = category;
 
@@ -75,7 +75,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const subscription = await Subscription.findOne({
-      where: { id: req.params.id, userId: req.user.id }
+      where: { id: req.params.id, userId: req.user._id || req.user.id }
     });
 
     if (!subscription) {
@@ -119,7 +119,7 @@ router.post('/', authenticateToken, [
 
     const subscriptionData = {
       ...req.body,
-      userId: req.user.id
+      userId: req.user._id || req.user.id
     };
 
     const subscription = await Subscription.create(subscriptionData);
@@ -159,7 +159,7 @@ router.put('/:id', authenticateToken, [
       });
     }
 
-    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user._id || req.user.id } });
     if (!subscription) {
       return res.status(404).json({ success: false, message: 'Subscription not found' });
     }
@@ -185,7 +185,7 @@ router.put('/:id', authenticateToken, [
 // @access  Private
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user._id || req.user.id } });
     if (!subscription) {
       return res.status(404).json({ success: false, message: 'Subscription not found' });
     }
@@ -210,7 +210,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 // @access  Private
 router.post('/:id/pause', authenticateToken, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user._id || req.user.id } });
 
     if (!subscription) {
       return res.status(404).json({
@@ -237,7 +237,7 @@ router.post('/:id/pause', authenticateToken, async (req, res) => {
 // @access  Private
 router.post('/:id/cancel', authenticateToken, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user._id || req.user.id } });
 
     if (!subscription) {
       return res.status(404).json({
@@ -264,7 +264,7 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
 // @access  Private
 router.post('/:id/reactivate', authenticateToken, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    const subscription = await Subscription.findOne({ where: { id: req.params.id, userId: req.user._id || req.user.id } });
 
     if (!subscription) {
       return res.status(404).json({
@@ -315,7 +315,7 @@ router.post('/upload-csv', authenticateToken, upload.single('file'), async (req,
             try {
               // Map CSV columns to subscription fields
               const subscriptionData = {
-                userId: req.user.id,
+                userId: req.user._id || req.user._id || req.user.id,
                 name: row.name || row.subscription_name || row.service,
                 merchant: row.merchant || row.company || row.name,
                 amount: parseFloat(row.amount || row.price || row.cost),

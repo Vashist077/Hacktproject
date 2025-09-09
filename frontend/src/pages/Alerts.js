@@ -2,70 +2,38 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import AlertCard from '../components/AlertCard';
+import { alertsAPI } from '../api';
 
 const Alerts = ({ user, onLogout }) => {
-  const [alerts, setAlerts] = useState([
-    {
-      id: 1,
-      type: 'fraud',
-      title: 'Unknown Recurring Debit',
-      merchant: 'XYZ Corp',
-      amount: 999,
-      date: '2024-01-15',
-      description: 'Unrecognized recurring charge detected from an unknown merchant. This could be fraudulent activity.',
-      status: 'active'
-    },
-    {
-      id: 2,
-      type: 'unused',
-      title: 'Unused Subscription Detected',
-      merchant: 'Adobe Creative Cloud',
-      amount: 2299,
-      date: '2024-01-10',
-      description: 'No usage detected in the last 30 days. Consider canceling to save money.',
-      status: 'active'
-    },
-    {
-      id: 3,
-      type: 'price_increase',
-      title: 'Price Increase Alert',
-      merchant: 'Netflix',
-      amount: 499,
-      date: '2024-01-20',
-      description: 'Netflix subscription price increased from ₹399 to ₹499. Review if you want to continue.',
-      status: 'active'
-    },
-    {
-      id: 4,
-      type: 'renewal',
-      title: 'Upcoming Renewal',
-      merchant: 'Spotify Premium',
-      amount: 199,
-      date: '2024-01-25',
-      description: 'Your Spotify Premium subscription will renew in 3 days.',
-      status: 'active'
-    },
-    {
-      id: 5,
-      type: 'fraud',
-      title: 'Suspicious Transaction',
-      merchant: 'Unknown Services',
-      amount: 1500,
-      date: '2024-01-12',
-      description: 'Large amount charged to an unrecognized merchant. Please verify this transaction.',
-      status: 'resolved'
-    },
-    {
-      id: 6,
-      type: 'unused',
-      title: 'Low Usage Subscription',
-      merchant: 'Disney+ Hotstar',
-      amount: 299,
-      date: '2024-01-08',
-      description: 'Very low usage detected. Consider pausing or canceling this subscription.',
-      status: 'resolved'
-    }
-  ]);
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const result = await alertsAPI.getAll();
+        const items = result?.data?.alerts || [];
+        setAlerts(items.map(a => ({
+          id: a._id || a.id,
+          type: a.type,
+          title: a.title,
+          merchant: a.merchant || a.subscription?.merchant || '',
+          amount: a.amount || a.subscription?.amount || 0,
+          date: a.date || a.createdAt,
+          description: a.description,
+          status: a.status || 'active'
+        })));
+      } catch (e) {
+        setError('Failed to load alerts');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAlerts();
+  }, []);
 
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
@@ -88,18 +56,17 @@ const Alerts = ({ user, onLogout }) => {
     }
   });
 
-  const handleAlertAction = (action, alertId) => {
-    console.log(`Alert action: ${action} for alert ${alertId}`);
-    
-    if (action === 'resolve') {
+  const handleAlertAction = async (action, alertId) => {
+    try {
+      if (action === 'resolve') {
+        await alertsAPI.resolve(alertId);
+      } else if (action === 'ignore') {
+        await alertsAPI.ignore(alertId);
+      }
       setAlerts(prev => prev.map(alert => 
-        alert.id === alertId ? { ...alert, status: 'resolved' } : alert
+        alert.id === alertId ? { ...alert, status: action === 'resolve' ? 'resolved' : 'ignored' } : alert
       ));
-    } else if (action === 'ignore') {
-      setAlerts(prev => prev.map(alert => 
-        alert.id === alertId ? { ...alert, status: 'ignored' } : alert
-      ));
-    }
+    } catch (_) {}
   };
 
   const activeAlerts = alerts.filter(alert => alert.status === 'active').length;
@@ -187,6 +154,12 @@ const Alerts = ({ user, onLogout }) => {
           </div>
 
           {/* Alerts List */}
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>Loading alerts...</div>
+          )}
+          {error && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#dc3545' }}>{error}</div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {sortedAlerts.map(alert => (
               <AlertCard 

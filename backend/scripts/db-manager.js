@@ -14,8 +14,8 @@ class DatabaseManager {
     this.dbConfig = {
       host: process.env.DB_HOST || '127.0.0.1',
       port: process.env.DB_PORT || 5432,
-      user: process.env.DB_USER || 'shirrapthi',
-      password: process.env.DB_PASSWORD || 'subguard',
+      user: process.env.DB_USER || 'vashist',
+      password: process.env.DB_PASSWORD || 'dedsec',
       database: process.env.DB_NAME || 'subguard_dev'
     };
   }

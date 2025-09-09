@@ -1,23 +1,72 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "./api";
 
 export default function Login({ onLogin }) {
   const [showLogin, setShowLogin] = useState(true);
   const navigate = useNavigate();
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupfirstName, setSignupfirstName] = useState("");
+  const [signuplastName, setSignuplastName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    // You can add validation here if needed
-    if (onLogin) {
-      // Mock user data for demo
-      const userData = {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        token: 'mock-jwt-token'
-      };
-      onLogin(userData);
+  const handleLogin = async () => {
+    setError("");
+    if (!loginEmail || !loginPassword) {
+      setError("Please enter email and password");
+      return;
     }
-    navigate("/dashboard");
+    setLoading(true);
+    try {
+      const res = await authAPI.login(loginEmail, loginPassword);
+      const token = res?.token || res?.data?.token;
+      const user = res?.user || res?.data?.user || { email: loginEmail };
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      if (onLogin) onLogin({ ...user, token });
+      navigate("/dashboard");
+    } catch (e) {
+      setError("Login failed. Check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async () => {
+    setError("");
+    if (!signupfirstName || !signuplastName || !signupEmail || !signupPassword) {
+      setError("Please fill all required fields");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await authAPI.register({
+        firstName: signupfirstName,
+        lastName: signuplastName,
+        email: signupEmail,
+        phone: signupPhone,
+        password: signupPassword,
+      });
+      const token = res?.token || res?.data?.token;
+      const user = res?.user || res?.data?.user || { firstName: signupfirstName, lastName: signuplastName, email: signupEmail, phone: signupPhone };
+      if (token) {
+        localStorage.setItem("token", token);
+        if (onLogin) onLogin({ ...user, token });
+        navigate("/dashboard");
+      } else {
+        setShowLogin(true);
+      }
+    } catch (e) {
+      setError("Signup failed. Try a different email or check inputs.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +91,9 @@ export default function Login({ onLogin }) {
           }}
         >
           <h2 style={{ marginBottom: "20px", color: "#333" }}>SubGuard Login</h2>
+          {error && (
+            <div style={{ color: "#dc3545", marginBottom: "8px" }}>{error}</div>
+          )}
           <input
             type="email"
             placeholder="Enter your email"
@@ -52,6 +104,8 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
           />
           <br />
           <input
@@ -64,6 +118,8 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
           />
           <br />
           <button
@@ -79,8 +135,9 @@ export default function Login({ onLogin }) {
               cursor: "pointer",
             }}
             onClick={handleLogin}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
           <p
             style={{ marginTop: "15px", color: "#3498db", cursor: "pointer" }}
@@ -101,9 +158,12 @@ export default function Login({ onLogin }) {
           }}
         >
           <h2 style={{ marginBottom: "20px", color: "#333" }}>SubGuard Signup</h2>
+          {error && (
+            <div style={{ color: "#dc3545", marginBottom: "8px" }}>{error}</div>
+          )}
           <input
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter your first name"
             style={{
               width: "90%",
               padding: "10px",
@@ -111,6 +171,22 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={signupfirstName}
+            onChange={(e) => setSignupfirstName(e.target.value)}
+          />
+          <br />
+          <input
+            type="text"
+            placeholder="Enter your last name"
+            style={{
+              width: "90%",
+              padding: "10px",
+              margin: "8px 0",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+            }}
+            value={signuplastName}
+            onChange={(e) => setSignuplastName(e.target.value)}
           />
           <br />
           <input
@@ -123,6 +199,8 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={signupEmail}
+            onChange={(e) => setSignupEmail(e.target.value)}
           />
           <br />
           <input
@@ -135,6 +213,8 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={signupPhone}
+            onChange={(e) => setSignupPhone(e.target.value)}
           />
           <br />
           <input
@@ -147,6 +227,8 @@ export default function Login({ onLogin }) {
               border: "1px solid #ccc",
               borderRadius: "5px",
             }}
+            value={signupPassword}
+            onChange={(e) => setSignupPassword(e.target.value)}
           />
           <br />
           <button
@@ -161,19 +243,10 @@ export default function Login({ onLogin }) {
               borderRadius: "5px",
               cursor: "pointer",
             }}
-            onClick={() => {
-              // Mock signup logic for demo
-              const userData = {
-                id: 1,
-                name: 'John Doe',
-                email: 'john@example.com',
-                token: 'mock-jwt-token'
-              };
-              if (onLogin) onLogin(userData);
-              navigate("/dashboard");
-            }}
+            onClick={handleSignup}
+            disabled={loading}
           >
-            Sign Up
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
           <p
             style={{ marginTop: "15px", color: "#3498db", cursor: "pointer" }}

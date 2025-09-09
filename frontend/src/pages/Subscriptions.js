@@ -2,70 +2,40 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import SubscriptionCard from '../components/SubscriptionCard';
+import { subscriptionsAPI } from '../api';
 
 const Subscriptions = ({ user, onLogout }) => {
-  const [subscriptions, setSubscriptions] = useState([
-    {
-      id: 1,
-      name: 'Netflix',
-      category: 'Streaming',
-      amount: 499,
-      status: 'active',
-      nextBilling: '2024-02-15',
-      usage: 'High',
-      lastUsed: '2024-01-20'
-    },
-    {
-      id: 2,
-      name: 'Spotify Premium',
-      category: 'Music',
-      amount: 199,
-      status: 'active',
-      nextBilling: '2024-02-10',
-      usage: 'High',
-      lastUsed: '2024-01-20'
-    },
-    {
-      id: 3,
-      name: 'Adobe Creative Cloud',
-      category: 'Software',
-      amount: 2299,
-      status: 'unused',
-      nextBilling: '2024-02-05',
-      usage: 'None',
-      lastUsed: '2023-12-15'
-    },
-    {
-      id: 4,
-      name: 'Amazon Prime',
-      category: 'Streaming',
-      amount: 999,
-      status: 'active',
-      nextBilling: '2024-02-20',
-      usage: 'Medium',
-      lastUsed: '2024-01-18'
-    },
-    {
-      id: 5,
-      name: 'Disney+ Hotstar',
-      category: 'Streaming',
-      amount: 299,
-      status: 'paused',
-      nextBilling: '2024-03-01',
-      usage: 'Low',
-      lastUsed: '2024-01-10'
-    },
-    {
-      id: 6,
-      name: 'Microsoft 365',
-      category: 'Software',
-      amount: 699,
-      status: 'active',
-      nextBilling: '2024-02-12',
-      usage: 'High',
-      lastUsed: '2024-01-19'
-    }
-  ]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const result = await subscriptionsAPI.getAll();
+        const items = Array.isArray(result) ? result : (result?.data || result?.subscriptions || []);
+        setSubscriptions(items.map(s => ({
+          id: s._id || s.id,
+          name: s.name,
+          category: s.category || s.merchant || '',
+          amount: s.amount || 0,
+          status: s.status || 'active',
+          nextBilling: s.nextBilling || s.next_billing || '',
+          usage: s.usage || 'High',
+          lastUsed: s.lastUsed || s.last_used || ''
+        })));
+      } catch (e) {
+        setError('Failed to load subscriptions');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubscriptions();
+  }, []);
 
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
@@ -92,6 +62,50 @@ const Subscriptions = ({ user, onLogout }) => {
   const handleSubscriptionAction = (action, subscriptionId) => {
     console.log(`Subscription action: ${action} for subscription ${subscriptionId}`);
     // Handle subscription actions here
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      setError('Please select a CSV file');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+    setUploadMessage('');
+
+    try {
+      const result = await subscriptionsAPI.uploadCSV(file);
+      
+      if (result.success) {
+        setUploadMessage(`Successfully imported ${result.data.imported} subscriptions`);
+        // Refresh the subscriptions list
+        const updatedResult = await subscriptionsAPI.getAll();
+        const items = Array.isArray(updatedResult) ? updatedResult : (updatedResult?.data || updatedResult?.subscriptions || []);
+        setSubscriptions(items.map(s => ({
+          id: s._id || s.id,
+          name: s.name,
+          category: s.category || s.merchant || '',
+          amount: s.amount || 0,
+          status: s.status || 'active',
+          nextBilling: s.nextBilling || s.next_billing || '',
+          usage: s.usage || 'High',
+          lastUsed: s.lastUsed || s.last_used || ''
+        })));
+      } else {
+        setError(result.message || 'Upload failed');
+      }
+    } catch (err) {
+      setError('Failed to upload CSV file');
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+      // Clear the file input
+      event.target.value = '';
+    }
   };
 
   const totalMonthlySpending = subscriptions
@@ -165,21 +179,42 @@ const Subscriptions = ({ user, onLogout }) => {
                   <option value="usage">Usage</option>
                 </select>
               </div>
-              <button style={{
-                background: '#007bff',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                marginTop: '1.5rem'
-              }}>
-                Upload CSV
-              </button>
+              <div style={{ marginTop: '1.5rem' }}>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                  id="csv-upload"
+                />
+                <label
+                  htmlFor="csv-upload"
+                  style={{
+                    background: uploading ? '#6c757d' : '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    cursor: uploading ? 'not-allowed' : 'pointer',
+                    display: 'inline-block'
+                  }}
+                >
+                  {uploading ? 'Uploading...' : 'Upload CSV'}
+                </label>
+              </div>
             </div>
           </div>
 
           {/* Subscriptions Grid */}
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>Loading subscriptions...</div>
+          )}
+          {error && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#dc3545' }}>{error}</div>
+          )}
+          {uploadMessage && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#28a745' }}>{uploadMessage}</div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
             {sortedSubscriptions.map(subscription => (
               <SubscriptionCard 

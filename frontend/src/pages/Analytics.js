@@ -219,29 +219,29 @@ const Analytics = ({ user, onLogout }) => {
 
           {/* Charts Row 1 */}
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-            <ChartCard title="Spending Over Time">
+            <ChartCard title="Spending Over Time" height={340}>
               <Line data={spendingOverTime} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
             
-            <ChartCard title="Category Distribution">
+            <ChartCard title="Category Distribution" height={340}>
               <Doughnut data={categoryDistribution} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
           </div>
 
           {/* Charts Row 2 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-            <ChartCard title="Fraud Detection Accuracy">
+            <ChartCard title="Fraud Detection Accuracy" height={320}>
               <Pie data={fraudDetectionAccuracy} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
             
-            <ChartCard title="Top Merchants by Spending">
+            <ChartCard title="Top Merchants by Spending" height={320}>
               <Bar data={topMerchants} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
           </div>
 
           {/* Forecast Chart */}
           <div style={{ marginBottom: '2rem' }}>
-            <ChartCard title="Monthly Forecast & Potential Savings">
+            <ChartCard title="Monthly Forecast & Potential Savings" height={340}>
               <Line data={monthlyForecast} options={{ responsive: true, maintainAspectRatio: false }} />
             </ChartCard>
           </div>

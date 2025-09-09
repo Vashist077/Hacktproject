@@ -9,9 +9,9 @@ const router = express.Router();
 
 // Gmail OAuth2 configuration
 const oauth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_CLIENT_ID,
-  process.env.GMAIL_CLIENT_SECRET,
-  process.env.GMAIL_REDIRECT_URI
+  process.env.GMAIL_CLIENT_ID || 'dummy-client-id',
+  process.env.GMAIL_CLIENT_SECRET || 'dummy-client-secret',
+  process.env.GMAIL_REDIRECT_URI || 'http://localhost:5000/api/gmail/callback'
 );
 
 // @route   GET /api/gmail/connect
@@ -19,6 +19,15 @@ const oauth2Client = new google.auth.OAuth2(
 // @access  Private
 router.get('/connect', authenticateToken, async (req, res) => {
   try {
+    // Check if Gmail OAuth is properly configured
+    if (!process.env.GMAIL_CLIENT_ID || process.env.GMAIL_CLIENT_ID === 'your-gmail-client-id') {
+      return res.status(400).json({
+        success: false,
+        message: 'Gmail OAuth not configured. Please set up Google Cloud credentials.',
+        setupRequired: true
+      });
+    }
+
     const scopes = [
       'https://www.googleapis.com/auth/gmail.readonly',
       'https://www.googleapis.com/auth/gmail.modify'
@@ -27,7 +36,7 @@ router.get('/connect', authenticateToken, async (req, res) => {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      state: req.user._id.toString()
+      state: (req.user._id || req.user.id).toString()
     });
 
     res.json({
@@ -95,7 +104,7 @@ router.get('/callback', async (req, res) => {
 // @access  Private
 router.post('/disconnect', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id || req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -127,7 +136,7 @@ router.post('/disconnect', authenticateToken, async (req, res) => {
 // @access  Private
 router.get('/status', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id || req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -168,7 +177,7 @@ router.get('/status', authenticateToken, async (req, res) => {
 // @access  Private
 router.post('/sync', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id || req.user.id);
     if (!user || !user.gmailConnected) {
       return res.status(400).json({
         success: false,
@@ -226,14 +235,14 @@ router.post('/sync', authenticateToken, async (req, res) => {
 
           // Check if this is a new transaction that needs an alert
           const existingAlert = await Alert.findOne({
-            user: req.user._id,
+            user: req.user._id || req.user.id,
             'metadata.transactionId': transactionData.transactionId
           });
 
           if (!existingAlert && transactionData.amount > 0) {
             // Create alert for new transaction
             const alert = new Alert({
-              user: req.user._id,
+              user: req.user._id || req.user.id,
               type: 'fraud', // Default to fraud, AI will classify
               title: `New Transaction: ${transactionData.merchant}`,
               description: `Transaction of ₹${transactionData.amount} detected from ${transactionData.merchant}`,
@@ -346,7 +355,7 @@ function getEmailBody(emailData) {
 // @access  Private
 router.post('/watch', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id || req.user.id);
     if (!user || !user.gmailConnected) {
       return res.status(400).json({
         success: false,

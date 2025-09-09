@@ -27,7 +27,8 @@ function App() {
     setLoading(false);
   }, []);
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData) => 
+  {
     setIsLoggedIn(true);
     setUser(userData);
     localStorage.setItem('token', userData.token);
